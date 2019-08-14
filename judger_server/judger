@@ -1,0 +1,83 @@
+class Judger {
+private:
+    int solution_id[1000];
+    int problem_id[1000];
+    int running_pid[100];
+    int cnt;
+    int default_memory;
+    int default_time;
+    int max_running;
+public:
+    Judger () {
+        memset(running_pid, -1, sizeof(running_pid));
+    }
+    void load (Config &conf) {
+        default_memory = strToInt(conf.get("DEFAULT_MEMORY"));
+        default_time   = strToInt(conf.get("DEFAULT_TIME"));
+        max_running    = strToInt(conf.get("MAX_RUNNING"));
+    }
+    void add (StoreQueryResult &submit) {
+        StoreQueryResult::const_iterator it;
+        int i = 0;
+        Row line;
+        for (it = submit.begin(); it != submit.end(); it ++) {
+            line = *it;
+            solution_id[i] = line["solution_id"];
+            problem_id[i] = line["problem_id"];
+            i ++;
+        }
+        cnt = i;
+    }
+    void judgeCode (Mysqlc &db) {
+        int running_cnt = 0;
+        int err = 0;
+        int pid;
+        int i = 0;
+        pair<int,int> limit(0,0);
+        string code;
+        while (i < cnt) {
+            while (running_cnt < max_running && i < cnt) {
+                limit = db.getLimit(problem_id[i]);
+                if (limit.first <= 0) {
+                    limit.first = default_memory;
+                }
+                if (limit.second <= 0) {
+                    limit.second = default_time;
+                }
+                code = db.getCode(solution_id[i]);
+                pid = fork();
+                if (pid < 0) {
+                    err ++;
+                    if (err == max_running) {
+                        //write something output here
+                        exit(1);
+                    }
+                    continue;
+                } else if (pid == 0) {
+                    this -> judgeClient(limit.second, limit.first, code);
+                } else {
+                    running_cnt ++;
+                    i ++;
+                    for (int j = 0; j < max_running; j ++) {
+                        if (running_pid[j] == -1) {
+                            running_pid[j] = pid;
+                        }
+                    }
+                }
+                err = 0;
+            }
+            pid = wait(NULL);
+            for (int j = 0; j < max_running; j ++) {
+                if (running_pid[j] == pid) {
+                    running_pid[j] = -1;
+                }
+            }
+            running_cnt --;
+        }
+    }
+protected:
+    void judgeClient (int &time_limit, int &memory_limit, string &code) {
+        // execl("/usr/local/bin/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
+        execl("/root/judger/judger_client/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
+    }
+};

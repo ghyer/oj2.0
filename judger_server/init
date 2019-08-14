@@ -2,3 +2,19 @@ Config              config;
 Mysqlc              db;
 StoreQueryResult    submit;
 Judger              judger;
+
+inline void init() {
+    // int pid = fork();
+    // if (pid > 0) {
+    //     exit(0);
+    // } else if (pid < 0) {
+    //     perror("Fail to running judge_server!")
+    //     exit(0);
+    // } else {
+    //     setsid();
+    //     umask(0);
+    // }
+    config.load("/etc/judger/config");
+    db.load(config);
+    judger.load(config);
+}

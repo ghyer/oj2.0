@@ -4,3 +4,4 @@
 #use mysql++3.2.5.tar.gz  -I/usr/local/include/mysql++   -lmysqlpp   ./configure    make    make install
 #use libmysqlclient-dev   -I/usr/include/mysql   -lmysqlclient
 #apt install libseccomp-dev libseccomp2 seccomp
+#cp judger_client /usr/local/bin
