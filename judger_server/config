@@ -1,0 +1,31 @@
+/****************
+ * config.read("/path/to/config")
+ * config.get("config_name")
+ ****************/
+
+class Config {
+private:
+    map<string,string> val;
+public:
+    void load (const char *s) {
+        //get all config line to config[]
+        ifstream op(s);
+        string config[100];
+        int i = 0;
+        while (getline(op, config[i])) {
+            i ++;
+        }
+        val["DB_URL"]           = getConfig(config, i, "DB_URL");
+        val["DB_USER"]          = getConfig(config, i, "DB_USER");
+        val["DB_PASS"]          = getConfig(config, i, "DB_PASS");
+        val["DB_PORT"]          = getConfig(config, i, "DB_PORT");
+        val["DB_NAME"]          = getConfig(config, i, "DB_NAME");
+        val["DEFAULT_TIME"]     = getConfig(config, i, "DEFAULT_TIME");
+        val["DEFAULT_MEMORY"]   = getConfig(config, i, "DEFAULT_MEMORY");
+        val["MAX_RUNNING"]      = getConfig(config, i, "MAX_RUNNING");
+    }
+    char* get(const char *s) {
+        string temp = s;
+        return (char*)val[s].data();
+    }
+};

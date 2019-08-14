@@ -1,0 +1,4 @@
+Config              config;
+Mysqlc              db;
+StoreQueryResult    submit;
+Judger              judger;

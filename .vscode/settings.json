@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "config": "cpp",
+        "cconfig": "cpp",
+        "mysqlc": "cpp"
+    },
+    "code-runner.saveAllFilesBeforeRun": true,
+    "code-runner.executorMap": {
+        "cpp": "cd $dir && g++ -g $fileName -o $fileNameWithoutExt -I/usr/include/mysql -I/usr/local/include/mysql++ -lmysqlpp -lmysqlclient && ./$fileNameWithoutExt"
+    }
+}

@@ -1,0 +1,34 @@
+class Mysqlc {
+private:
+    Connection conn;
+public:
+    ~Mysqlc () {
+        delete this;
+    }
+    void load (Config &conf) {
+        if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
+            cout << "successful" << endl;
+        } else {
+            cout << "Connect to database fail!" << endl;
+        }
+    }
+    StoreQueryResult listen () {
+        Query query = conn.query("SELECT solution_id,problem_id FROM solution WHERE result=0 ORDER BY solution_id DESC");
+        StoreQueryResult res = query.store();
+        return res;
+    }
+    pair<int,int> getLimit (int problem_id) {
+        Query query = conn.query("SELECT memory_limit,time_limit FROM problem WHERE problem_id=%0q");
+        query.parse();
+        StoreQueryResult res = query.store(intToStr(problem_id));
+        Row line = res[0];
+        return make_pair(line["memory_limit"],line["time_limit"]);
+    }
+    string getCode (int solution_id) {
+        Query query = conn.query("SELECT source FROM source_code WHERE solution_id=%0q");
+        query.parse();
+        StoreQueryResult res = query.store(intToStr(solution_id));
+        Row line = res[0];
+        return (string)line["source"];
+    }
+};
