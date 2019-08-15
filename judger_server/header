@@ -1,3 +1,4 @@
+//Header file. Write all the include file and using.
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -9,6 +10,8 @@
 #include <mysql++.h>
 #include <cstring>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 using std::cout;
 using std::endl;

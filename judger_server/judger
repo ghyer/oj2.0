@@ -1,3 +1,4 @@
+//Judger class, running of scheduling subprogram.
 class Judger {
 private:
     int solution_id[1000];
@@ -66,6 +67,15 @@ public:
                 }
                 err = 0;
             }
+            pid = wait(NULL);
+            for (int j = 0; j < max_running; j ++) {
+                if (running_pid[j] == pid) {
+                    running_pid[j] = -1;
+                }
+            }
+            running_cnt --;
+        }
+        while (running_cnt) {
             pid = wait(NULL);
             for (int j = 0; j < max_running; j ++) {
                 if (running_pid[j] == pid) {

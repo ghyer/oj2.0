@@ -5,3 +5,5 @@
 #use libmysqlclient-dev   -I/usr/include/mysql   -lmysqlclient
 #apt install libseccomp-dev libseccomp2 seccomp
 #cp judger_client /usr/local/bin
+#useradd -m judger && su judger && cd ~/
+#mkdir data && mkdir judge

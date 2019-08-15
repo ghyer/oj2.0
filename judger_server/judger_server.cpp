@@ -2,7 +2,7 @@
 #include "config"
 #include "mysqlc"
 #include "judger"
-#include "init"
+#include "init.h"
 
 int main(int argc, char **argv) {
     init();
