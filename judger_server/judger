@@ -33,9 +33,7 @@ public:
         passwd *running_user;
         running_user = getpwnam("judger");
         chdir("/home/judger");
-        if (chroot("/home/judger")) {
-            exit(1);
-        }
+        chroot("/home/judger");
         setuid(running_user -> pw_uid);
     }
     void judgeCode (Mysqlc &db) {
@@ -64,7 +62,7 @@ public:
                     }
                     continue;
                 } else if (pid == 0) {
-                    this -> judgeClient(limit.second, limit.first, code);
+                    judgeClient(limit.second, limit.first, code);
                 } else {
                     running_cnt ++;
                     i ++;
