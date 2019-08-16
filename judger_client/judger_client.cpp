@@ -1,14 +1,12 @@
 #include <iostream>
-#include <sys/types.h>
 #include <unistd.h>
-#include <linux/seccomp.h>
 #include <cstring>
+#include <linux/seccomp.h>
 using namespace std;
 int main(int argc, char **argv) {
     cout << getlogin() << endl;
-    cout << chroot("/home/judger/judge") << endl;
-    char buf[100];
-    getcwd(buf, sizeof(buf));
-    cout << buf << endl;
+    // cout << getuid() << endl;
+    // cout << getgid() << endl;
+    sleep(3);
     return 0;
 }

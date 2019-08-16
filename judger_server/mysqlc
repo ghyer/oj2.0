@@ -8,7 +8,7 @@ public:
     }
     void load (Config &conf) {
         if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
-            cout << "successful" << endl;
+            cout << "Success to connect to database!" << endl;
         } else {
             cout << "Connect to database fail!" << endl;
         }

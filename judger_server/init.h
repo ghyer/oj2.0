@@ -15,11 +15,8 @@ inline void init() {
     //     setsid();
     //     umask(0);
     // }
-    // cout << getuid() << endl;
-    // cout << getgid() << endl;
-    // cout << getlogin() <<  endl;
 
-    config.load("/etc/judger/config");
+    config.load("/home/judger/config");
     db.load(config);
     judger.load(config);
 }

@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pwd.h>
 
 using std::cout;
 using std::endl;

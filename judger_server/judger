@@ -29,6 +29,15 @@ public:
         }
         cnt = i;
     }
+    void changeEnvironment () {
+        passwd *running_user;
+        running_user = getpwnam("judger");
+        chdir("/home/judger");
+        if (chroot("/home/judger")) {
+            exit(1);
+        }
+        setuid(running_user -> pw_uid);
+    }
     void judgeCode (Mysqlc &db) {
         int running_cnt = 0;
         int err = 0;
@@ -88,6 +97,6 @@ public:
 protected:
     void judgeClient (int &time_limit, int &memory_limit, string &code) {
         // execl("/usr/local/bin/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
-        execl("/root/judger/judger_client/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
+        execl("/judger/judger_client/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
     }
 };

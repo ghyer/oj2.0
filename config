@@ -1,0 +1,8 @@
+DB_URL      = localhost
+DB_USER     = root
+DB_PASS     = rooterA1
+DB_PORT     = 3306
+DB_NAME     = jol
+DEFAULT_TIME= 1
+DEFAULT_MEMORY=128
+MAX_RUNNING = 5

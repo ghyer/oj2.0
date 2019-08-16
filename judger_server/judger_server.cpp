@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
     while(true) {
         submit = db.listen();
         judger.add(submit);
+        judger.changeEnvironment();
         judger.judgeCode(db);
         sleep(200);
     }
