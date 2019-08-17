@@ -62,13 +62,22 @@ public:
                     }
                     continue;
                 } else if (pid == 0) {
-                    judgeClient(limit.second, limit.first, code);
+                    // cout << running_cnt << endl;
+                    int num = 0;
+                    for (int j = 0; j < max_running; j ++) {
+                        if (running_pid[j] == -1) {
+                            num = j;
+                            break;
+                        }
+                    }
+                    judgeClient(i, limit.second, limit.first, code, num);
                 } else {
                     running_cnt ++;
                     i ++;
                     for (int j = 0; j < max_running; j ++) {
                         if (running_pid[j] == -1) {
                             running_pid[j] = pid;
+                            break;
                         }
                     }
                 }
@@ -77,7 +86,9 @@ public:
             pid = wait(NULL);
             for (int j = 0; j < max_running; j ++) {
                 if (running_pid[j] == pid) {
+                    // cout << "Client" << j << " is closed" << endl;
                     running_pid[j] = -1;
+                    break;
                 }
             }
             running_cnt --;
@@ -86,15 +97,17 @@ public:
             pid = wait(NULL);
             for (int j = 0; j < max_running; j ++) {
                 if (running_pid[j] == pid) {
+                    // cout << "Client" << j << " is closed" << endl;
                     running_pid[j] = -1;
+                    break;
                 }
             }
             running_cnt --;
         }
     }
 protected:
-    void judgeClient (int &time_limit, int &memory_limit, string &code) {
+    void judgeClient (int id, int &time_limit, int &memory_limit, string &code, int num) {
         // execl("/usr/local/bin/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
-        execl("/judger/judger_client/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
+        execl("/judger/judger_client/judger_client", "judger_client", intToStr(solution_id[id]).c_str(), intToStr(problem_id[id]).c_str(), intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), intToStr(num).c_str(), code.c_str(), NULL);
     }
 };

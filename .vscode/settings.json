@@ -1,8 +1,11 @@
 {
+    "files.defaultLanguage": "cpp",
+    "** / just_this_dir_name / [！.]": "cpp",
     "files.associations": {
+        "judger": "cpp",
         "iostream": "cpp",
         "config": "cpp",
-        "cconfig": "cpp",
+        "function": "cpp",
         "mysqlc": "cpp",
         "array": "cpp",
         "*.tcc": "cpp",
@@ -46,5 +49,6 @@
     "code-runner.saveAllFilesBeforeRun": true,
     "code-runner.executorMap": {
         "cpp": "cd $dir && g++ -g $fileName -o $fileNameWithoutExt -I/usr/include/mysql -I/usr/local/include/mysql++ -lmysqlpp -lmysqlclient && ./$fileNameWithoutExt"
+        // "cpp": "cd $dir && g++ -g $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt 5 1 1 128 1"
     }
 }

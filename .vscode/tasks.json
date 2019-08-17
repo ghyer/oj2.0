@@ -14,6 +14,13 @@
                 "-lmysqlpp",
                 "-lmysqlclient"
             ],
+            // "args": [
+            //     "-g",
+            //     "${file}",
+            //     "-o",
+            //     "${fileDirname}/${fileBasenameNoExtension}",
+            //     "-I/usr/include/",
+            // ],
             "options": {
                 "cwd": "/usr/bin"
             }
