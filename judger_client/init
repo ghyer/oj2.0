@@ -1,0 +1,54 @@
+Config   config;
+Mysqlc   db;
+Client   client;
+
+const string ROOT_DIR = "/home/judger";
+const string COMPILE_CMD = "g++ -o main main.cpp -w 2>&1";
+
+
+void init(int sid, string num) {
+    config.load("/home/judger/config");
+    db.load(config);
+    client.load(sid, config, db);
+
+    const string PATH = ROOT_DIR + "/client/client" + num;
+    const string CODE_FILE = PATH + "/main.cpp";
+    const string RUNNING_FILE = PATH + "/main";
+
+    chdir(ROOT_DIR.c_str());
+    mkdir(PATH.c_str(), 755);
+
+    ofstream code;
+    code.open(CODE_FILE, ios::out);
+    code << client.getCode();
+    code.close();
+
+    //Popen() doesn't work at g++ so turn to use pipe()
+    //g++ use stderr but not stdout
+    chdir(PATH.c_str());
+    FILE *fp = NULL;
+    fp = popen(COMPILE_CMD.c_str(), "r");
+    if(fp == NULL) {
+        cout << "fail" << endl;
+        exit(1);
+    }
+    char buf[1000];
+    bool success = true;
+    memset(buf,'\0',sizeof(buf));
+    while (fgets( buf, sizeof(buf), fp) != NULL) {
+        if (success) {
+            success = false;
+        }
+        cout << buf;
+    }
+    pclose(fp);
+    if (!success) {
+        cout << "Compiling error" << endl;
+    } else {
+        cout << "Compile success!" << endl;
+    }
+
+    // remove(RUNNING_FILE.c_str());
+    // remove(CODE_FILE.c_str());
+    // rmdir(PATH.c_str());
+}

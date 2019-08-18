@@ -2,19 +2,14 @@
 class Judger {
 private:
     int solution_id[1000];
-    int problem_id[1000];
     int running_pid[100];
     int cnt;
-    int default_memory;
-    int default_time;
     int max_running;
 public:
     Judger () {
         memset(running_pid, -1, sizeof(running_pid));
     }
     void load (Config &conf) {
-        default_memory = strToInt(conf.get("DEFAULT_MEMORY"));
-        default_time   = strToInt(conf.get("DEFAULT_TIME"));
         max_running    = strToInt(conf.get("MAX_RUNNING"));
     }
     void add (StoreQueryResult &submit) {
@@ -24,7 +19,6 @@ public:
         for (it = submit.begin(); it != submit.end(); it ++) {
             line = *it;
             solution_id[i] = line["solution_id"];
-            problem_id[i] = line["problem_id"];
             i ++;
         }
         cnt = i;
@@ -41,18 +35,10 @@ public:
         int err = 0;
         int pid;
         int i = 0;
-        pair<int,int> limit(0,0);
-        string code;
+        int j;
+        int num;
         while (i < cnt) {
             while (running_cnt < max_running && i < cnt) {
-                limit = db.getLimit(problem_id[i]);
-                if (limit.first <= 0) {
-                    limit.first = default_memory;
-                }
-                if (limit.second <= 0) {
-                    limit.second = default_time;
-                }
-                code = db.getCode(solution_id[i]);
                 pid = fork();
                 if (pid < 0) {
                     err ++;
@@ -63,18 +49,18 @@ public:
                     continue;
                 } else if (pid == 0) {
                     // cout << running_cnt << endl;
-                    int num = 0;
-                    for (int j = 0; j < max_running; j ++) {
+                    num = 0;
+                    for (j = 0; j < max_running; j ++) {
                         if (running_pid[j] == -1) {
                             num = j;
                             break;
                         }
                     }
-                    judgeClient(i, limit.second, limit.first, code, num);
+                    judgeClient(i, num);
                 } else {
                     running_cnt ++;
                     i ++;
-                    for (int j = 0; j < max_running; j ++) {
+                    for (j = 0; j < max_running; j ++) {
                         if (running_pid[j] == -1) {
                             running_pid[j] = pid;
                             break;
@@ -84,7 +70,7 @@ public:
                 err = 0;
             }
             pid = wait(NULL);
-            for (int j = 0; j < max_running; j ++) {
+            for (j = 0; j < max_running; j ++) {
                 if (running_pid[j] == pid) {
                     // cout << "Client" << j << " is closed" << endl;
                     running_pid[j] = -1;
@@ -106,8 +92,7 @@ public:
         }
     }
 protected:
-    void judgeClient (int id, int &time_limit, int &memory_limit, string &code, int num) {
-        // execl("/usr/local/bin/judger_client", "judger_client", intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), code.c_str(), NULL);
-        execl("/judger/judger_client/judger_client", "judger_client", intToStr(solution_id[id]).c_str(), intToStr(problem_id[id]).c_str(), intToStr(time_limit).c_str(), intToStr(memory_limit).c_str(), intToStr(num).c_str(), code.c_str(), NULL);
+    void judgeClient (int id, int num) {
+        execl("/judger/judger_client/judger_client", "judger_client", intToStr(solution_id[id]).c_str(), intToStr(num).c_str(), NULL);
     }
 };

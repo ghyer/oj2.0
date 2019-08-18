@@ -1,0 +1,27 @@
+//Client class
+class Client {
+private:
+    int solution_id;
+    int problem_id;
+    int memory_limit;
+    int time_limit;
+    string code;
+public:
+    void load (int sid, Config &conf, Mysqlc &db) {
+        solution_id         = sid;
+        problem_id          = db.getProblemId(sid);
+        pair<int,int> limit = db.getLimit(problem_id);
+        code                = db.getCode(sid);
+        memory_limit        = limit.first;
+        time_limit          = limit.second;
+        if (memory_limit <= 0) {
+            memory_limit = strToInt(conf.get("DEFAULT_MEMORY"));
+        }
+        if (time_limit <= 0) {
+            time_limit   = strToInt(conf.get("DEFAULT_TIME"));
+        }
+    }
+    const char *getCode () {
+        return code.c_str();
+    }
+};

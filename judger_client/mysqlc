@@ -8,15 +8,17 @@ public:
     }
     void load (Config &conf) {
         if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
-            cout << "Success to connect to database!" << endl;
+            cout << "Client: Success to connect to database!" << endl;
         } else {
-            cout << "Connect to database fail!" << endl;
+            cout << "Client: Connect to database fail!" << endl;
         }
     }
-    StoreQueryResult listen () {
-        Query query = conn.query("SELECT solution_id FROM solution WHERE result=0 ORDER BY solution_id DESC");
-        StoreQueryResult res = query.store();
-        return res;
+    int getProblemId (int solution_id) {
+        Query query = conn.query("SELECT problem_id FROM solution WHERE solution_id=%0q");
+        query.parse();
+        StoreQueryResult res = query.store(intToStr(solution_id));
+        Row line = res[0];
+        return line["problem_id"];
     }
     pair<int,int> getLimit (int problem_id) {
         Query query = conn.query("SELECT memory_limit,time_limit FROM problem WHERE problem_id=%0q");

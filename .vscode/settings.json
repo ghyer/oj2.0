@@ -2,7 +2,10 @@
     "files.defaultLanguage": "cpp",
     "** / just_this_dir_name / [！.]": "cpp",
     "files.associations": {
+        "client": "cpp",
         "judger": "cpp",
+        "init": "cpp",
+        "header": "cpp",
         "iostream": "cpp",
         "config": "cpp",
         "function": "cpp",
@@ -44,7 +47,9 @@
         "type_traits": "cpp",
         "tuple": "cpp",
         "typeinfo": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "optional": "cpp",
+        "string_view": "cpp"
     },
     "code-runner.saveAllFilesBeforeRun": true,
     "code-runner.executorMap": {

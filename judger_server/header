@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <cstring>
 #include <typeinfo>
 #include <string>
 #include <map>
@@ -19,11 +18,13 @@ using std::endl;
 using std::ifstream;
 using std::string;
 using std::map;
-using std::pair;
-using std::make_pair;
 using mysqlpp::Connection;
 using mysqlpp::Query;
 using mysqlpp::StoreQueryResult;
 using mysqlpp::Row;
 
-#include "function"
+#include "../common/function"
+#include "../common/config"
+#include "mysqlc"
+#include "judger"
+#include "init"
