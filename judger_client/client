@@ -14,10 +14,10 @@ public:
         code                = db.getCode(sid);
         memory_limit        = limit.first;
         time_limit          = limit.second;
-        if (memory_limit <= 0) {
+        if (memory_limit <= 0 || memory_limit > 2048) {
             memory_limit = strToInt(conf.get("DEFAULT_MEMORY"));
         }
-        if (time_limit <= 0) {
+        if (time_limit <= 0 || time_limit > 20) {
             time_limit   = strToInt(conf.get("DEFAULT_TIME"));
         }
     }

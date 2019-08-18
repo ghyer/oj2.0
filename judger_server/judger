@@ -23,13 +23,6 @@ public:
         }
         cnt = i;
     }
-    void changeEnvironment () {
-        passwd *running_user;
-        running_user = getpwnam("judger");
-        chdir("/home/judger");
-        chroot("/home/judger");
-        setuid(running_user -> pw_uid);
-    }
     void judgeCode (Mysqlc &db) {
         int running_cnt = 0;
         int err = 0;
