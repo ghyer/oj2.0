@@ -6,6 +6,14 @@ public:
     ~Mysqlc () {
         delete this;
     }
+    void updateCompile (int sid, FILE *fp) {
+        string compile_info = " ";
+        char buf[1000];
+        while (fgets(buf, sizeof(buf), fp) != NULL) {
+            compile_info += (string) buf;
+        }
+        cout << compile_info << endl;
+    }
     void load (Config &conf) {
         if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
             cout << "Client: Success to connect to database!" << endl;

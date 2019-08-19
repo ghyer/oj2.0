@@ -3,6 +3,7 @@
     "** / just_this_dir_name / [！.]": "cpp",
     "files.associations": {
         "client": "cpp",
+        "error": "cpp",
         "judger": "cpp",
         "init": "cpp",
         "header": "cpp",

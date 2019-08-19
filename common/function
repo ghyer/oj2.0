@@ -59,7 +59,7 @@ string getConfig(string *config, int cnt, const char *config_name) {
                         j ++;
                     }
                     ans.clear();
-                    while (j < len && config[i][j] != '\0' && config[i][j] != ' ' && config[i][j] != '\n' && config[i][j] != '\r') {
+                    while (j < len && config[i][j] != '\0' && config[i][j] != '\n' && config[i][j] != '\r') {
                         ans += config[i][j];
                         j ++;
                     }
@@ -72,4 +72,9 @@ string getConfig(string *config, int cnt, const char *config_name) {
         cout << "Lack of Parameter \"" << config_name << "\" in config file" << endl;
         exit(EXIT_FAILURE);
     }
+}
+
+void throwError (int code) {
+    cout << "Error code is :" << code << endl;
+    exit(0);
 }

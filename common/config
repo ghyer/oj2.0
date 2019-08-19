@@ -23,6 +23,11 @@ public:
         val["DEFAULT_TIME"]     = getConfig(config, i, "DEFAULT_TIME");
         val["DEFAULT_MEMORY"]   = getConfig(config, i, "DEFAULT_MEMORY");
         val["MAX_RUNNING"]      = getConfig(config, i, "MAX_RUNNING");
+        val["COMPILE_TIME"]     = getConfig(config, i, "COMPILE_TIME");
+        val["COMPILE_ERROR_OUT"]= getConfig(config, i, "COMPILE_ERROR_OUT");
+        val["COMPILE_CMD"]      = getConfig(config, i, "COMPILE_CMD");
+        val["JUDGE_HOME"]       = getConfig(config, i, "JUDGE_HOME");
+        val["DATA_HOME"]        = getConfig(config, i, "DATA_HOME");
     }
     char* get(const char *s) {
         string temp = s;

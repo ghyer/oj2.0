@@ -31,8 +31,8 @@ using mysqlpp::Connection;
 using mysqlpp::Row;
 using mysqlpp::StoreQueryResult;
 
+#include "../common/error"
 #include "../common/function"
 #include "../common/config"
 #include "mysqlc"
 #include "client"
-#include "init"

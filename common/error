@@ -1,0 +1,5 @@
+const int FORK_ERROR = 1;
+const int CHDIR_ERROR = 2;
+const int MKDIR_ERROR = 3;
+const int POPEN_ERROR = 4;
+const int COMPILE_ERROR = 5;
