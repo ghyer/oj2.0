@@ -24,4 +24,7 @@ public:
     const char *getCode () {
         return code.c_str();
     }
+    int getProblemId () {
+        return problem_id;
+    }
 };

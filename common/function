@@ -76,5 +76,5 @@ string getConfig(string *config, int cnt, const char *config_name) {
 
 void throwError (int code) {
     cout << "Error code is :" << code << endl;
-    exit(0);
+    exit(1);
 }

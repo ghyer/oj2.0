@@ -3,16 +3,33 @@ class Mysqlc {
 private:
     Connection conn;
 public:
-    ~Mysqlc () {
-        delete this;
-    }
-    void updateCompile (int sid, FILE *fp) {
-        string compile_info = " ";
+    void updateCompile (int sid, FILE *fp, char *first) {
+        string compile_info = (string)first;
+        if (fp == NULL) {
+            throwError(COMPILE_TLE);
+        }
         char buf[1000];
         while (fgets(buf, sizeof(buf), fp) != NULL) {
             compile_info += (string) buf;
         }
-        cout << compile_info << endl;
+        Query query(NULL);
+        StoreQueryResult result;
+        query = conn.query("SELECT solution_id FROM compileinfo WHERE solution_id=%0q");
+        query.parse();
+        result = query.store(intToStr(sid));
+        query.reset();
+        if (result.num_rows() == 0) {
+            query = conn.query("INSERT INTO compileinfo (solution_id,error) VALUES (%0q,%1q)");
+            query.parse();
+            query.execute(intToStr(sid), compile_info);
+        } else {
+            // cout << compile_info << endl;
+            // exit(0);
+            query = conn.query("UPDATE compileinfo SET error = %0q WHERE solution_id = %1q");
+            query.parse();
+            query.execute(compile_info, intToStr(sid));
+            // cout << result.num_rows() << endl;
+        }
     }
     void load (Config &conf) {
         if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
