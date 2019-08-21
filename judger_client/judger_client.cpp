@@ -139,6 +139,7 @@ int main (int argc, char **argv) {
             rlimit limit;
             int memory = client.getMemory();
             int time = client.getTime();
+            // cout << memory << ' ' << time << endl;
             limit = (rlimit) {memory * 1024 * 1024 * 8, memory * 1024 * 1024 * 8};
             if (setrlimit(RLIMIT_AS, &limit)) {
                 throwError(LIMIT_ERROR);
@@ -156,7 +157,7 @@ int main (int argc, char **argv) {
             if (setrlimit(RLIMIT_NPROC, &limit)) {
                 throwError(LIMIT_ERROR);
             }
-            setuid(judger->pw_uid);
+            cout << setuid(judger->pw_uid) << endl;
 
             FILE *input = NULL;
             FILE *output = NULL;
@@ -177,9 +178,6 @@ int main (int argc, char **argv) {
             // }
 
             // DIR *dir = opendir("/");
-            // cout << errno << endl;
-            // cout << (dir == NULL) << endl;
-            // exit(0);
             // dirent *list;
             // while ((list = readdir(dir)) != NULL) {
             //     cout << list -> d_name << endl;
