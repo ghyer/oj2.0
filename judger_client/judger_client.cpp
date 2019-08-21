@@ -4,6 +4,24 @@ Mysqlc   db;
 Client   client;
 char buf[1000];
 
+void chrootPre () {
+    mkdir("lib64", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("lib", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("lib/x86_64-linux-gnu", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("bin", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("usr", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("usr/lib", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("usr/lib/x86_64-linux-gnu", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    system("cp /lib/x86_64-linux-gnu/libdl.so.2 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libc.so.6 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libtinfo.so.5 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libm.so.6 ./lib/x86_64-linux-gnu");
+    system("cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./usr/lib/x86_64-linux-gnu");
+    system("cp /lib64/ld-linux-x86-64.so.2 ./lib64");
+    system("cp /bin/bash bin");
+}
+
 int main (int argc, char **argv) {
     // About the argv:
     // 1 -> solution_id
@@ -122,11 +140,7 @@ int main (int argc, char **argv) {
     
     passwd *judger = getpwnam("judger");
     chdir(PATH.c_str());
-    system("cp -r /usr ./");
-    system("cp -r /lib ./");
-    system("cp -r /lib64 ./");
-    mkdir("bin", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-    system("cp /bin/bash bin");
+    chrootPre();
     chownDir(PATH.c_str(), judger->pw_uid, judger->pw_gid);
     chroot(PATH.c_str());
 
@@ -157,12 +171,12 @@ int main (int argc, char **argv) {
             if (setrlimit(RLIMIT_NPROC, &limit)) {
                 throwError(LIMIT_ERROR);
             }
-            cout << setuid(judger->pw_uid) << endl;
+            setuid(judger->pw_uid);
 
             FILE *input = NULL;
             FILE *output = NULL;
             input = fopen(("/data/" + (string)(in_list[i] -> d_name)).c_str(), "r");
-            output = fopen("ans.out", "w");
+            output = fopen("/ans.out", "w");
             // getcwd(buf, sizeof(buf));
             // cout << buf << endl;
             // cout << "/data/" + (string) (in_list[i] -> d_name) << endl;
@@ -173,9 +187,11 @@ int main (int argc, char **argv) {
             if (dup2(fileno(input), fileno(stdin))) {
                 throwError(DUP2_ERROR);
             }
-            // if (dup2(fileno(stdout), fileno(output))) {
-            //     throwError(DUP2_ERROR);
-            // }
+            if (dup2(fileno(output), fileno(stdout))) {
+                throwError(DUP2_ERROR);
+            }
+            fflush(stdout);
+            fclose(output);
 
             // DIR *dir = opendir("/");
             // dirent *list;
@@ -183,6 +199,7 @@ int main (int argc, char **argv) {
             //     cout << list -> d_name << endl;
             // }
             errno = 0;
+            // cout << "yes" << endl;
             execl("/main", "main", NULL);
             cout << errno << endl;
             throwError(EXEC_ERROR);
