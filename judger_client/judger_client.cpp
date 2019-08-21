@@ -37,10 +37,10 @@ int main (int argc, char **argv) {
     if (chdir(JUDGE_HOME.c_str())) {
         throwError(CHDIR_ERROR);
     }
-    if (mkdir(PATH.c_str(), 755)) {
+    if (mkdir(PATH.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
         throwError(MKDIR_ERROR);
     }
-    if (mkdir((PATH + "/data").c_str(), 755)) {
+    if (mkdir((PATH + "/data").c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
         throwError(MKDIR_ERROR);
     }
     
@@ -121,7 +121,14 @@ int main (int argc, char **argv) {
     // }
     
     passwd *judger = getpwnam("judger");
+    chdir(PATH.c_str());
+    system("cp -r /usr ./");
+    system("cp -r /lib ./");
+    system("cp -r /lib64 ./");
+    mkdir("bin", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    system("cp /bin/bash bin");
     chownDir(PATH.c_str(), judger->pw_uid, judger->pw_gid);
+    chroot(PATH.c_str());
 
     //Set limit for running it.
     for (int i = 0; i < count; i ++) {
@@ -149,9 +156,6 @@ int main (int argc, char **argv) {
             if (setrlimit(RLIMIT_NPROC, &limit)) {
                 throwError(LIMIT_ERROR);
             }
-            
-            chdir(PATH.c_str());
-            chroot(PATH.c_str());
             setuid(judger->pw_uid);
 
             FILE *input = NULL;
