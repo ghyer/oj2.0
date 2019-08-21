@@ -21,10 +21,16 @@ public:
             time_limit   = strToInt(conf.get("DEFAULT_TIME"));
         }
     }
-    const char *getCode () {
+    const char* getCode () {
         return code.c_str();
     }
     int getProblemId () {
         return problem_id;
+    }
+    int getMemory () {
+        return memory_limit;
+    }
+    int getTime () {
+        return time_limit;
     }
 };

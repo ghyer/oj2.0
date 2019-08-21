@@ -78,3 +78,52 @@ void throwError (int code) {
     cout << "Error code is :" << code << endl;
     exit(1);
 }
+
+int dirSelectIn (const dirent *dirname) {
+    const char *buf = dirname -> d_name;
+    int l = strlen(buf);
+    if (buf[l-2] == 'i' && buf[l-1] == 'n') {
+        return true;
+    }
+    if (buf[l-2] == 'I' && buf[l-1] == 'N') {
+        return true;
+    }
+    return false;
+}
+
+int dirSelectOut (const dirent *dirname) {
+    const char *buf = dirname -> d_name;
+    int l = strlen(buf);
+    if (buf[l-3] == 'a' && buf[l-2] == 'n' && buf[l-1] == 's') {
+        return true;
+    }
+    if (buf[l-3] == 'o' && buf[l-2] == 'u' && buf[l-1] == 't') {
+        return true;
+    }
+    if (buf[l-3] == 'A' && buf[l-2] == 'N' && buf[l-1] == 'S') {
+        return true;
+    }
+    if (buf[l-3] == 'O' && buf[l-2] == 'U' && buf[l-1] == 'T') {
+        return true;
+    }
+    return false;
+}
+
+void chownDir(const char* dir, int uid, int gid) {
+    // cout << dir << endl;
+    chown(dir, uid, gid);
+    dirent *list;
+    string dirname;
+    DIR *nowdir = opendir(dir);
+    if (nowdir == NULL) {
+        return;
+    }
+    while ((list = readdir(nowdir)) != NULL) {
+        if (strcmp(list->d_name, ".") == 0 || strcmp(list->d_name, "..") == 0) {
+            continue;
+        }
+        dirname = (string)dir + "/" + (string)(list->d_name);
+        chownDir(dirname.c_str(), uid, gid);
+    }
+    return;
+}

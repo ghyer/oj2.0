@@ -3,34 +3,7 @@ Config   config;
 Mysqlc   db;
 Client   client;
 char buf[1000];
-int dirSelectIn (const dirent *dirname) {
-    const char *buf = dirname -> d_name;
-    int l = strlen(buf);
-    if (buf[l-2] == 'i' && buf[l-1] == 'n') {
-        return true;
-    }
-    if (buf[l-2] == 'I' && buf[l-1] == 'N') {
-        return true;
-    }
-    return false;
-}
-int dirSelectOut (const dirent *dirname) {
-    const char *buf = dirname -> d_name;
-    int l = strlen(buf);
-    if (buf[l-3] == 'a' && buf[l-2] == 'n' && buf[l-1] == 's') {
-        return true;
-    }
-    if (buf[l-3] == 'o' && buf[l-2] == 'u' && buf[l-1] == 't') {
-        return true;
-    }
-    if (buf[l-3] == 'A' && buf[l-2] == 'N' && buf[l-1] == 'S') {
-        return true;
-    }
-    if (buf[l-3] == 'O' && buf[l-2] == 'U' && buf[l-1] == 'T') {
-        return true;
-    }
-    return false;
-}
+
 int main (int argc, char **argv) {
     // About the argv:
     // 1 -> solution_id
@@ -139,38 +112,78 @@ int main (int argc, char **argv) {
     if (count == 0) {
         throwError(DATA_ERROR);
     }
+    // cout << count << endl;
     // for (int i = 0; i < count; i ++) {
     //     cout << in_list[i] -> d_name << endl;
     // }
     // for (int i = 0; i < count; i ++) {
     //     cout << out_list[i] -> d_name << endl;
     // }
+    
+    passwd *judger = getpwnam("judger");
+    chownDir(PATH.c_str(), judger->pw_uid, judger->pw_gid);
 
     //Set limit for running it.
-    pid = fork();
-    if (pid < 0) {
-        throwError(FORK_ERROR);
-    } else if (pid == 0) {
-        //AS base Byte
-        rlimit limit;
-        limit = {128*1024*1024*8, 128*1024*1024*8};
-        setrlimit(RLIMIT_AS, &limit);
+    for (int i = 0; i < count; i ++) {
+        pid = fork();
+        if (pid < 0) {
+            throwError(FORK_ERROR);
+        } else if (pid == 0) {
+            rlimit limit;
+            int memory = client.getMemory();
+            int time = client.getTime();
+            limit = (rlimit) {memory * 1024 * 1024 * 8, memory * 1024 * 1024 * 8};
+            if (setrlimit(RLIMIT_AS, &limit)) {
+                throwError(LIMIT_ERROR);
+            }
 
-        limit = {0, 0};
-        setrlimit(RLIMIT_CORE, &limit);
+            limit = (rlimit) {time, time};
+            if (setrlimit(RLIMIT_CPU, &limit)) {
+                throwError(LIMIT_ERROR);
+            }
 
-        limit = {1, 1};
-        cout << setrlimit(RLIMIT_CPU, &limit) << endl;
+            limit = (rlimit) {0, 0};
+            if (setrlimit(RLIMIT_CORE, &limit)) {
+                throwError(LIMIT_ERROR);
+            }
+            if (setrlimit(RLIMIT_NPROC, &limit)) {
+                throwError(LIMIT_ERROR);
+            }
+            
+            chdir(PATH.c_str());
+            chroot(PATH.c_str());
+            setuid(judger->pw_uid);
 
-        sleep(2);
-        getrlimit(RLIMIT_CPU, &limit);
-        cout << limit.rlim_cur << ' ' << limit.rlim_max << endl;
-
-        exit(0);
-    } else {
-        cout << "-----------------------------------" << endl;
+            FILE *input = NULL;
+            FILE *output = NULL;
+            input = fopen(("/data/" + (string)(in_list[i] -> d_name)).c_str(), "r");
+            output = fopen("ans.out", "w");
+            // getcwd(buf, sizeof(buf));
+            // cout << buf << endl;
+            // cout << "/data/" + (string) (in_list[i] -> d_name) << endl;
+            // cout << input << endl;
+            if (input == NULL) {
+                throwError(FOPEN_ERROR);
+            }
+            if (dup2(fileno(input), fileno(stdin))) {
+                throwError(DUP2_ERROR);
+            }
+            // if (dup2(fileno(stdout), fileno(output))) {
+            //     throwError(DUP2_ERROR);
+            // }
+            
+            execl("/", "main", NULL);
+            throwError(EXEC_ERROR);
+            // cout << getuid() << endl;
+            
+        } else {
+            rusage *usage;
+            wait4(pid, &status, WSTOPPED, usage);
+            cout << WIFSIGNALED(status) << endl;
+        }
     }
-
+    wait(NULL);
+    exit(0);
     //Delete dir
     if (system(((string)"rm -r " + PATH).c_str())) {
         throwError(REMOVE_ERROR);

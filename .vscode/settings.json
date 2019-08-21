@@ -54,7 +54,7 @@
     },
     "code-runner.saveAllFilesBeforeRun": true,
     "code-runner.executorMap": {
-        "cpp": "cd $dir && g++ -g $fileName -o $fileNameWithoutExt -I/usr/include/mysql -I/usr/local/include/mysql++ -lmysqlpp -lmysqlclient && ./$fileNameWithoutExt"
+        "cpp": "cd $dir && g++ -g $fileName -o $fileNameWithoutExt -I/usr/include/mysql -I/usr/local/include/mysql++ -lmysqlpp -lmysqlclient -w && ./$fileNameWithoutExt 6 1"
         // "cpp": "cd $dir && g++ -g $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt 5 1 1 128 1"
     }
 }
