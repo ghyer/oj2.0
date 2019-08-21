@@ -111,6 +111,7 @@ int dirSelectOut (const dirent *dirname) {
 
 void chownDir(const char* dir, int uid, int gid) {
     // cout << dir << endl;
+    chmod(dir, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
     chown(dir, uid, gid);
     dirent *list;
     string dirname;
@@ -125,5 +126,6 @@ void chownDir(const char* dir, int uid, int gid) {
         dirname = (string)dir + "/" + (string)(list->d_name);
         chownDir(dirname.c_str(), uid, gid);
     }
+    closedir(nowdir);
     return;
 }

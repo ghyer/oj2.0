@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <seccomp.h>
 #include <mysql++.h>
+#include <cerrno>
 
 #include <sys/wait.h>
 #include <sys/time.h>

@@ -171,15 +171,25 @@ int main (int argc, char **argv) {
             // if (dup2(fileno(stdout), fileno(output))) {
             //     throwError(DUP2_ERROR);
             // }
-            
-            execl("/", "main", NULL);
+
+            // DIR *dir = opendir("/");
+            // cout << errno << endl;
+            // cout << (dir == NULL) << endl;
+            // exit(0);
+            // dirent *list;
+            // while ((list = readdir(dir)) != NULL) {
+            //     cout << list -> d_name << endl;
+            // }
+            errno = 0;
+            execl("/main", "main", NULL);
+            cout << errno << endl;
             throwError(EXEC_ERROR);
             // cout << getuid() << endl;
             
         } else {
             rusage *usage;
             wait4(pid, &status, WSTOPPED, usage);
-            cout << WIFSIGNALED(status) << endl;
+            // cout << WIFSIGNALED(status) << endl;
         }
     }
     wait(NULL);
