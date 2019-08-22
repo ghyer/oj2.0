@@ -4,10 +4,6 @@ Mysqlc   db;
 Client   client;
 char buf[1000];
 
-void handle(int signal) {
-    cout << signal << endl;
-}
-
 void chrootPre () {
     mkdir("lib64", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
     mkdir("lib", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -24,6 +20,82 @@ void chrootPre () {
     system("cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./usr/lib/x86_64-linux-gnu");
     system("cp /lib64/ld-linux-x86-64.so.2 ./lib64");
     system("cp /bin/bash bin");
+}
+
+int diffTwoFile (const char *file1, const char *file2) {
+    int l1;
+    int l2;
+    string ans = " ";
+    string test = " ";
+    ifstream fp;
+    fp.open(file1, ios::in);
+    while (!fp.eof()) {
+        ans += fp.get();
+    }
+    fp.close();
+    l1 = ans.length();
+    for (int i = 0; ans[i] != '\0'; i ++) {
+        if ((ans[i] < '0' || ans[i] > '9') && (ans[i] < 'a' || ans[i] > 'z') && (ans[i] < 'A' || ans[i] > 'Z')) {
+            ans.erase(i, 1);
+            i --;
+            continue;
+        }
+        break;
+    }
+    l1 = ans.length();
+    for (int i = l1-1; i >= 0; i --) {
+        if ((ans[i] < '0' || ans[i] > '9') && (ans[i] < 'a' || ans[i] > 'z') && (ans[i] < 'A' || ans[i] > 'Z')) {
+            ans.erase(i, 1);
+            continue;
+        }
+        break;
+    }
+    
+    fp.open(file2, ios::in);
+    while (!fp.eof()) {
+        test += fp.get();
+    }
+    fp.close();
+    l2 = test.length();
+    for (int i = 0; test[i] != '\0'; i ++) {
+        if ((test[i] < '0' || test[i] > '9') && (test[i] < 'a' || test[i] > 'z') && (test[i] < 'A' || test[i] > 'Z')) {
+            test.erase(i, 1);
+            i --;
+            continue;
+        }
+        break;
+    }
+    l2 = test.length();
+    for (int i = l2-1; i >= 0; i --) {
+        if ((test[i] < '0' || test[i] > '9') && (test[i] < 'a' || test[i] > 'z') && (test[i] < 'A' || test[i] > 'Z')) {
+            test.erase(i, 1);
+            continue;
+        }
+        break;
+    }
+    if (ans == test) {
+        return AC;
+    }
+    l1 = ans.length();
+    l2 = test.length();
+    cout << ans << endl;
+    cout << test << endl;
+    for (int i = 0; i < l1; i ++) {
+        if ((ans[i] < '0' || ans[i] > '9') && (ans[i] < 'a' || ans[i] > 'z') && (ans[i] < 'A' || ans[i] > 'Z')) {
+            ans.erase(i, 1);
+            i --;
+        }
+    }
+    for (int i = 0; i < l2; i ++) {
+        if ((test[i] < '0' || test[i] > '9') && (test[i] < 'a' || test[i] > 'z') && (test[i] < 'A' || test[i] > 'Z')) {
+            test.erase(i, 1);
+            i --;
+        }
+    }
+    if (test == ans) {
+        return PE;
+    }
+    return WA;
 }
 
 int main (int argc, char **argv) {
@@ -163,22 +235,33 @@ int main (int argc, char **argv) {
             int time = client.getTime();
             
             rlimit mlimit;
-            mlimit = (rlimit) {memory * 1024 * 1024 * 8, memory * 1024 * 1024 * 8};
+            mlimit = (rlimit) {memory * 1024 * 1024 * 2, memory * 1024 * 1024 * 2};
             if (setrlimit(RLIMIT_AS, &mlimit)) {
                 throwError(LIMIT_ERROR);
             }
+            mlimit = (rlimit) {memory * 1024 * 1024 * 2, memory * 1024 * 1024 * 2};
+            if (setrlimit(RLIMIT_DATA, &mlimit)) {
+                throwError(LIMIT_ERROR);
+            }
+
             rlimit tlimit;
             tlimit = (rlimit) {time, time + 1};
             if (setrlimit(RLIMIT_CPU, &tlimit)) {
                 throwError(LIMIT_ERROR);
             }
-            // limit = (rlimit) {0, 0};
-            // if (setrlimit(RLIMIT_CORE, &limit)) {
-            //     throwError(LIMIT_ERROR);
-            // }
-            // if (setrlimit(RLIMIT_NPROC, &limit)) {
-            //     throwError(LIMIT_ERROR);
-            // }
+
+            rlimit climit;
+            climit = (rlimit) {0, 0};
+            if (setrlimit(RLIMIT_CORE, &climit)) {
+                throwError(LIMIT_ERROR);
+            }
+            
+            rlimit slimit;
+            slimit = (rlimit) { 20 * 1024 * 1024, 20 * 1024 * 1024};
+            if (setrlimit(RLIMIT_STACK, &slimit)) {
+                throwError(LIMIT_ERROR);
+            }
+
             //Set gid must before uid
             setgid(judger->pw_gid);
             setuid(judger->pw_uid);
@@ -203,6 +286,7 @@ int main (int argc, char **argv) {
             int dieid;
             int time_used;
             int memory_used;
+            bool diff = false;
             while (true) {
                 dieid = wait4(pid, &stat, WUNTRACED, &usage);
                 // wait4 exit error
@@ -222,7 +306,10 @@ int main (int argc, char **argv) {
                     cout << memory_used << "MB" << endl;
                     if (memory_used > client.getMemory()) {
                         cout << "MLE" << endl;
+                        break;
                     }
+                    diff = true;
+                    // cout << "AC" << endl;
                     break;
                 }
                 if (WIFSIGNALED(stat)) {
@@ -248,6 +335,17 @@ int main (int argc, char **argv) {
                 }
                 //continue pid process
                 ptrace(PTRACE_CONT, pid, NULL, NULL);
+            }
+            if (diff) {
+                string test = (string)"/data/" + (string)(out_list[i] -> d_name);
+                status = diffTwoFile("ans.out", test.c_str());
+                if (status == AC) {
+                    cout << "AC" << endl;
+                } else if (status == WA) {
+                    cout << "WA" << endl;
+                } else if (status == PE) {
+                    cout << "PE" << endl;
+                }
             }
         }
     }

@@ -13,3 +13,7 @@ const int FREOPEN_ERROR = 12;
 const int DUP2_ERROR = 13;
 const int EXEC_ERROR = 14;
 const int WAIT4_ERROR = 15;
+
+const int PE = 16;
+const int AC = 17;
+const int WA = 18;

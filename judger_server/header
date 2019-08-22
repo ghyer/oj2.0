@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <dirent.h>
 
 using std::cout;
 using std::endl;

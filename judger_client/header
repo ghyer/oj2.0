@@ -11,7 +11,6 @@
 #include <typeinfo>
 #include <iostream>
 #include <unistd.h>
-#include <seccomp.h>
 #include <mysql++.h>
 #include <fcntl.h>
 #include <cerrno>
