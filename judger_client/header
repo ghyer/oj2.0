@@ -13,8 +13,10 @@
 #include <unistd.h>
 #include <seccomp.h>
 #include <mysql++.h>
+#include <fcntl.h>
 #include <cerrno>
 
+#include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -24,6 +26,7 @@
 using std::map;
 using std::ios;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::pair;
 using std::string;

@@ -3,7 +3,7 @@ class Mysqlc {
 private:
     Connection conn;
 public:
-    void updateCompile (int sid, FILE *fp, char *first) {
+    void updateCompile (int sid, FILE *fp, const char *first) {
         string compile_info = (string)first;
         if (fp == NULL) {
             throwError(COMPILE_TLE);

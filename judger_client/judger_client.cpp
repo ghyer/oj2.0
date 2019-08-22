@@ -4,6 +4,10 @@ Mysqlc   db;
 Client   client;
 char buf[1000];
 
+void handle(int signal) {
+    cout << signal << endl;
+}
+
 void chrootPre () {
     mkdir("lib64", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
     mkdir("lib", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -30,7 +34,6 @@ int main (int argc, char **argv) {
     //Set environment value
     int pid;
     int status;
-    int count;
     int sid = strToInt(argv[1]);
     int num = strToInt(argv[2]);
     config.load("/home/judger/config");
@@ -44,7 +47,6 @@ int main (int argc, char **argv) {
     const string CODE_FILE      = PATH + "/main.cpp";
     const string RUNNING_FILE   = PATH + "/main";
     const string DATA_HOME      = (string)config.get("DATA_HOME");
-    // cout << COMPILE_CMD << endl;
 
     //Check client dir common or not
     if (!access(PATH.c_str(), F_OK)) {
@@ -91,11 +93,15 @@ int main (int argc, char **argv) {
             exit(0);
         }
     } else {
+        int stat = 0;
         timeval end;
         bool kill_flag = true;
         do {
             gettimeofday(&end, NULL);
-            if (waitpid(pid, NULL, WNOHANG) == pid) {
+            if (waitpid(pid, &stat, WNOHANG) == pid) {
+                if (stat) {
+                    exit(0);
+                }
                 kill_flag = false;
                 break;
             }
@@ -120,100 +126,134 @@ int main (int argc, char **argv) {
             throwError(COPY_FAIL);
         }
     }
-    // cout << cp_cmd << endl;
     
-    //Get datain and dataout
+    //Get datain and dataout.
+    int count1, count2;
     dirent **in_list;
     dirent **out_list;
-    count = scandir((PATH + "/data").c_str(), &in_list, dirSelectIn, alphasort);
-    count = scandir((PATH + "/data").c_str(), &out_list, dirSelectOut, alphasort);
-    if (count == 0) {
+    count1 = scandir((PATH + "/data").c_str(), &in_list, dirSelectIn, alphasort);
+    if (count1 == 0) {
         throwError(DATA_ERROR);
     }
-    // cout << count << endl;
-    // for (int i = 0; i < count; i ++) {
-    //     cout << in_list[i] -> d_name << endl;
-    // }
-    // for (int i = 0; i < count; i ++) {
-    //     cout << out_list[i] -> d_name << endl;
-    // }
+    count2 = scandir((PATH + "/data").c_str(), &out_list, dirSelectOut, alphasort);
+    if (count2 == 0) {
+        throwError(DATA_ERROR);
+    }
+    if (count1 != count2) {
+        throwError(DATA_ERROR);
+    }
     
+    //Change running environment.
     passwd *judger = getpwnam("judger");
     chdir(PATH.c_str());
     chrootPre();
     chownDir(PATH.c_str(), judger->pw_uid, judger->pw_gid);
     chroot(PATH.c_str());
 
+    // signal(SIGCHLD, handle);
+
     //Set limit for running it.
-    for (int i = 0; i < count; i ++) {
+    for (int i = 0; i < count1; i ++) {
         pid = fork();
         if (pid < 0) {
             throwError(FORK_ERROR);
         } else if (pid == 0) {
-            rlimit limit;
+            // cout << "I am in" << endl;
             int memory = client.getMemory();
             int time = client.getTime();
-            // cout << memory << ' ' << time << endl;
-            limit = (rlimit) {memory * 1024 * 1024 * 8, memory * 1024 * 1024 * 8};
-            if (setrlimit(RLIMIT_AS, &limit)) {
+            
+            rlimit mlimit;
+            mlimit = (rlimit) {memory * 1024 * 1024 * 8, memory * 1024 * 1024 * 8};
+            if (setrlimit(RLIMIT_AS, &mlimit)) {
                 throwError(LIMIT_ERROR);
             }
-
-            limit = (rlimit) {time, time};
-            if (setrlimit(RLIMIT_CPU, &limit)) {
+            rlimit tlimit;
+            tlimit = (rlimit) {time, time + 1};
+            if (setrlimit(RLIMIT_CPU, &tlimit)) {
                 throwError(LIMIT_ERROR);
             }
-
-            limit = (rlimit) {0, 0};
-            if (setrlimit(RLIMIT_CORE, &limit)) {
-                throwError(LIMIT_ERROR);
-            }
-            if (setrlimit(RLIMIT_NPROC, &limit)) {
-                throwError(LIMIT_ERROR);
-            }
-            // setuid(judger->pw_uid);
+            // limit = (rlimit) {0, 0};
+            // if (setrlimit(RLIMIT_CORE, &limit)) {
+            //     throwError(LIMIT_ERROR);
+            // }
+            // if (setrlimit(RLIMIT_NPROC, &limit)) {
+            //     throwError(LIMIT_ERROR);
+            // }
+            //Set gid must before uid
+            setgid(judger->pw_gid);
+            setuid(judger->pw_uid);
 
             FILE *input = NULL;
-            input = fopen(("/data/" + (string)(in_list[i] -> d_name)).c_str(), "r");
-            // getcwd(buf, sizeof(buf));
-            // cout << buf << endl;
-            // cout << "/data/" + (string) (in_list[i] -> d_name) << endl;
-            // cout << input << endl;
-            if (input == NULL) {
-                throwError(FOPEN_ERROR);
-            }
-            if (dup2(fileno(input), fileno(stdin))) {
-                throwError(DUP2_ERROR);
+            FILE *output = NULL;
+            input = freopen(("/data/" + (string)(in_list[i] -> d_name)).c_str(), "r", stdin);
+            output = freopen("ans.out", "w", stdout);
+            if (input == NULL || output == NULL) {
+                throwError(FREOPEN_ERROR);
             }
 
-            // DIR *dir = opendir("/");
-            // dirent *list;
-            // while ((list = readdir(dir)) != NULL) {
-            //     cout << list -> d_name << endl;
-            // }
-            errno = 0;
-            // cout << "yes" << endl;
-            freopen("ans.out","w",stdout);
+            // errno = 0;
             execl("/main", "main", NULL);
-            cout << errno << endl;
+            close(fileno(input));
+            close(fileno(output));
+            // cout << errno << endl;
             throwError(EXEC_ERROR);
-            // cout << getuid() << endl;
-            
         } else {
-            rusage *usage;
-            timeval tvl;
-            wait4(pid, &status, WSTOPPED, usage);
-            // cout << WIFSIGNALED(status) << endl;
-            tvl = usage -> ru_stime;
-            cout << tvl.tv_sec << ' ' << tvl.tv_usec << endl;
-            tvl = usage -> ru_utime;
-            cout << tvl.tv_sec << ' ' << tvl.tv_usec << endl;
-            cout << (usage -> ru_maxrss) / 1024 / 1024 << endl;
-            cout << (usage -> ru_isrss) / 1024 / 1024 << endl;
+            rusage usage;
+            int stat;
+            int dieid;
+            int time_used;
+            int memory_used;
+            while (true) {
+                dieid = wait4(pid, &stat, WUNTRACED, &usage);
+                // wait4 exit error
+                if (dieid == -1) {
+                    // Check errno.
+                    throwError(WAIT4_ERROR);
+                }
+                // cout << client.getMemory() << endl;
+                // Child process exit normally.
+                if (WIFEXITED(stat)) {
+                    time_used = usage.ru_utime.tv_sec  * 1000 
+                          + usage.ru_utime.tv_usec / 1000
+                          + usage.ru_stime.tv_sec  * 1000
+                          + usage.ru_stime.tv_usec / 1000;
+                    memory_used = usage.ru_maxrss / 1024;
+                    cout << time_used << "ms" << endl;
+                    cout << memory_used << "MB" << endl;
+                    if (memory_used > client.getMemory()) {
+                        cout << "MLE" << endl;
+                    }
+                    break;
+                }
+                if (WIFSIGNALED(stat)) {
+                    ptrace(PTRACE_KILL, pid, NULL, NULL);
+                    time_used = usage.ru_utime.tv_sec  * 1000 
+                          + usage.ru_utime.tv_usec / 1000
+                          + usage.ru_stime.tv_sec  * 1000
+                          + usage.ru_stime.tv_usec / 1000;
+                    memory_used = usage.ru_maxrss / 1024;
+                    cout << time_used << "ms" << endl;
+                    cout << memory_used << "MB" << endl;
+                    status = WTERMSIG(stat);
+                    if (status == SIGALRM || status == SIGXCPU) {
+                        cout << "TLE" << endl;
+                        break;
+                    } else if (status == SIGSEGV) {
+                        cout << "MLE1" << endl;
+                        break;
+                    } else {
+                        cout << "RE" << endl;
+                        break;
+                    }
+                }
+                //continue pid process
+                ptrace(PTRACE_CONT, pid, NULL, NULL);
+            }
         }
     }
     wait(NULL);
     exit(0);
+
     //Delete dir
     if (system(((string)"rm -r " + PATH).c_str())) {
         throwError(REMOVE_ERROR);
