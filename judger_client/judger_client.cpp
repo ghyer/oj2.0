@@ -171,12 +171,10 @@ int main (int argc, char **argv) {
             if (setrlimit(RLIMIT_NPROC, &limit)) {
                 throwError(LIMIT_ERROR);
             }
-            setuid(judger->pw_uid);
+            // setuid(judger->pw_uid);
 
             FILE *input = NULL;
-            FILE *output = NULL;
             input = fopen(("/data/" + (string)(in_list[i] -> d_name)).c_str(), "r");
-            output = fopen("/ans.out", "w");
             // getcwd(buf, sizeof(buf));
             // cout << buf << endl;
             // cout << "/data/" + (string) (in_list[i] -> d_name) << endl;
@@ -187,11 +185,6 @@ int main (int argc, char **argv) {
             if (dup2(fileno(input), fileno(stdin))) {
                 throwError(DUP2_ERROR);
             }
-            if (dup2(fileno(output), fileno(stdout))) {
-                throwError(DUP2_ERROR);
-            }
-            fflush(stdout);
-            fclose(output);
 
             // DIR *dir = opendir("/");
             // dirent *list;
@@ -200,6 +193,7 @@ int main (int argc, char **argv) {
             // }
             errno = 0;
             // cout << "yes" << endl;
+            freopen("ans.out","w",stdout);
             execl("/main", "main", NULL);
             cout << errno << endl;
             throwError(EXEC_ERROR);
@@ -207,8 +201,15 @@ int main (int argc, char **argv) {
             
         } else {
             rusage *usage;
+            timeval tvl;
             wait4(pid, &status, WSTOPPED, usage);
             // cout << WIFSIGNALED(status) << endl;
+            tvl = usage -> ru_stime;
+            cout << tvl.tv_sec << ' ' << tvl.tv_usec << endl;
+            tvl = usage -> ru_utime;
+            cout << tvl.tv_sec << ' ' << tvl.tv_usec << endl;
+            cout << (usage -> ru_maxrss) / 1024 / 1024 << endl;
+            cout << (usage -> ru_isrss) / 1024 / 1024 << endl;
         }
     }
     wait(NULL);
