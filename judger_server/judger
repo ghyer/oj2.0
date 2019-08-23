@@ -1,16 +1,16 @@
-//Judger class, running of scheduling subprogram.
+//Judger class
 class Judger {
 private:
-    int solution_id[1000];
-    int running_pid[100];
     int cnt;
     int max_running;
+    int running_pid[100];
+    int solution_id[1000];
 public:
     Judger () {
         memset(running_pid, -1, sizeof(running_pid));
     }
     void load (Config &conf) {
-        max_running    = strToInt(conf.get("MAX_RUNNING"));
+        max_running = strToInt(conf.get("MAX_RUNNING"));
     }
     void add (StoreQueryResult &submit) {
         StoreQueryResult::const_iterator it;
@@ -24,24 +24,22 @@ public:
         cnt = i;
     }
     void judgeCode (Mysqlc &db) {
-        int running_cnt = 0;
-        int err = 0;
-        int pid;
-        int i = 0;
         int j;
+        int pid;
         int num;
+        int i = 0;
+        int err = 0;
+        int running_cnt = 0;
         while (i < cnt) {
             while (running_cnt < max_running && i < cnt) {
                 pid = fork();
                 if (pid < 0) {
                     err ++;
                     if (err == max_running) {
-                        //write something output here
-                        exit(1);
+                        throwError(FORK_ERROR);
                     }
                     continue;
                 } else if (pid == 0) {
-                    // cout << running_cnt << endl;
                     num = 0;
                     for (j = 0; j < max_running; j ++) {
                         if (running_pid[j] == -1) {
@@ -51,8 +49,8 @@ public:
                     }
                     judgeClient(i, num);
                 } else {
-                    running_cnt ++;
                     i ++;
+                    running_cnt ++;
                     for (j = 0; j < max_running; j ++) {
                         if (running_pid[j] == -1) {
                             running_pid[j] = pid;
@@ -65,7 +63,6 @@ public:
             pid = wait(NULL);
             for (j = 0; j < max_running; j ++) {
                 if (running_pid[j] == pid) {
-                    // cout << "Client" << j << " is closed" << endl;
                     running_pid[j] = -1;
                     break;
                 }
@@ -76,7 +73,6 @@ public:
             pid = wait(NULL);
             for (int j = 0; j < max_running; j ++) {
                 if (running_pid[j] == pid) {
-                    // cout << "Client" << j << " is closed" << endl;
                     running_pid[j] = -1;
                     break;
                 }
@@ -87,5 +83,6 @@ public:
 protected:
     void judgeClient (int id, int num) {
         execl("/judger/judger_client/judger_client", "judger_client", intToStr(solution_id[id]).c_str(), intToStr(num).c_str(), NULL);
+        throwError(EXEC_ERROR);
     }
 };

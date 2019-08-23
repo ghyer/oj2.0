@@ -1,16 +1,11 @@
-//mysql class
+//Mysql class
 class Mysqlc {
 private:
     Connection conn;
 public:
-    ~Mysqlc () {
-        delete this;
-    }
     void load (Config &conf) {
-        if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
-            cout << "Success to connect to database!" << endl;
-        } else {
-            cout << "Connect to database fail!" << endl;
+        if (!conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
+            throwError(CONNECT_ERROR);
         }
     }
     StoreQueryResult listen () {

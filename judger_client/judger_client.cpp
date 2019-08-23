@@ -22,29 +22,28 @@ void chrootPre () {
     system("cp /bin/bash bin");
 }
 
+bool delBlank (const char ch) {
+    if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\377')
+        return true;
+    return false;
+}
+
 int diffTwoFile (const char *file1, const char *file2) {
     int l1;
     int l2;
-    string ans = " ";
-    string test = " ";
+    char ch;
     ifstream fp;
+    string ans = "";
+    string test = "";
+
     fp.open(file1, ios::in);
-    while (!fp.eof()) {
-        ans += fp.get();
+    while (fp.get(ch)) {
+        ans += ch;
     }
     fp.close();
     l1 = ans.length();
-    for (int i = 0; ans[i] != '\0'; i ++) {
-        if ((ans[i] < '0' || ans[i] > '9') && (ans[i] < 'a' || ans[i] > 'z') && (ans[i] < 'A' || ans[i] > 'Z')) {
-            ans.erase(i, 1);
-            i --;
-            continue;
-        }
-        break;
-    }
-    l1 = ans.length();
     for (int i = l1-1; i >= 0; i --) {
-        if ((ans[i] < '0' || ans[i] > '9') && (ans[i] < 'a' || ans[i] > 'z') && (ans[i] < 'A' || ans[i] > 'Z')) {
+        if (delBlank(ans[i])) {
             ans.erase(i, 1);
             continue;
         }
@@ -57,17 +56,8 @@ int diffTwoFile (const char *file1, const char *file2) {
     }
     fp.close();
     l2 = test.length();
-    for (int i = 0; test[i] != '\0'; i ++) {
-        if ((test[i] < '0' || test[i] > '9') && (test[i] < 'a' || test[i] > 'z') && (test[i] < 'A' || test[i] > 'Z')) {
-            test.erase(i, 1);
-            i --;
-            continue;
-        }
-        break;
-    }
-    l2 = test.length();
     for (int i = l2-1; i >= 0; i --) {
-        if ((test[i] < '0' || test[i] > '9') && (test[i] < 'a' || test[i] > 'z') && (test[i] < 'A' || test[i] > 'Z')) {
+        if (delBlank(test[i])) {
             test.erase(i, 1);
             continue;
         }
@@ -81,13 +71,13 @@ int diffTwoFile (const char *file1, const char *file2) {
     cout << ans << endl;
     cout << test << endl;
     for (int i = 0; i < l1; i ++) {
-        if ((ans[i] < '0' || ans[i] > '9') && (ans[i] < 'a' || ans[i] > 'z') && (ans[i] < 'A' || ans[i] > 'Z')) {
+        if (delBlank(ans[i])) {
             ans.erase(i, 1);
             i --;
         }
     }
     for (int i = 0; i < l2; i ++) {
-        if ((test[i] < '0' || test[i] > '9') && (test[i] < 'a' || test[i] > 'z') && (test[i] < 'A' || test[i] > 'Z')) {
+        if (delBlank(test[i])) {
             test.erase(i, 1);
             i --;
         }
@@ -158,6 +148,7 @@ int main (int argc, char **argv) {
             throwError(POPEN_ERROR);
         } else {
             if (fgets( buf, sizeof(buf), fp) != NULL) {
+                db.setResult(sid, CE);
                 db.updateCompile(sid, fp, buf);
                 throwError(COMPILE_ERROR);
             }
@@ -180,6 +171,7 @@ int main (int argc, char **argv) {
         } while (end.tv_sec - start.tv_sec <= compile_time);
         if (kill_flag) {
             kill(pid, SIGKILL);
+            db.setResult(sid, CO);
             db.updateCompile(sid, NULL ,"Compile timeout!");
         }
     }
@@ -221,8 +213,6 @@ int main (int argc, char **argv) {
     chrootPre();
     chownDir(PATH.c_str(), judger->pw_uid, judger->pw_gid);
     chroot(PATH.c_str());
-
-    // signal(SIGCHLD, handle);
 
     //Set limit for running it.
     for (int i = 0; i < count1; i ++) {
@@ -289,12 +279,10 @@ int main (int argc, char **argv) {
             bool diff = false;
             while (true) {
                 dieid = wait4(pid, &stat, WUNTRACED, &usage);
-                // wait4 exit error
                 if (dieid == -1) {
-                    // Check errno.
+                    // Check errno for more details.
                     throwError(WAIT4_ERROR);
                 }
-                // cout << client.getMemory() << endl;
                 // Child process exit normally.
                 if (WIFEXITED(stat)) {
                     time_used = usage.ru_utime.tv_sec  * 1000 
@@ -302,14 +290,14 @@ int main (int argc, char **argv) {
                           + usage.ru_stime.tv_sec  * 1000
                           + usage.ru_stime.tv_usec / 1000;
                     memory_used = usage.ru_maxrss / 1024;
-                    cout << time_used << "ms" << endl;
-                    cout << memory_used << "MB" << endl;
+                    client.updateTime(time_used);
+                    client.updateMemory(memory_used);
                     if (memory_used > client.getMemory()) {
-                        cout << "MLE" << endl;
+                        // cout << "MLE" ;
+                        db.setResult(sid, MLE);
                         break;
                     }
                     diff = true;
-                    // cout << "AC" << endl;
                     break;
                 }
                 if (WIFSIGNALED(stat)) {
@@ -319,17 +307,22 @@ int main (int argc, char **argv) {
                           + usage.ru_stime.tv_sec  * 1000
                           + usage.ru_stime.tv_usec / 1000;
                     memory_used = usage.ru_maxrss / 1024;
-                    cout << time_used << "ms" << endl;
-                    cout << memory_used << "MB" << endl;
+                    client.updateTime(time_used);
+                    client.updateMemory(memory_used);
+                    // cout << time_used << "ms" << endl;
+                    // cout << memory_used << "MB" << endl;
                     status = WTERMSIG(stat);
                     if (status == SIGALRM || status == SIGXCPU) {
-                        cout << "TLE" << endl;
+                        // cout << "TLE" ;
+                        db.setResult(sid, TLE);
                         break;
                     } else if (status == SIGSEGV) {
-                        cout << "MLE1" << endl;
+                        // cout << "MLE1" ;
+                        db.setResult(sid, MLE);
                         break;
                     } else {
-                        cout << "RE" << endl;
+                        // cout << "RE" ;
+                        db.setResult(sid, RE);
                         break;
                     }
                 }
@@ -340,22 +333,21 @@ int main (int argc, char **argv) {
                 string test = (string)"/data/" + (string)(out_list[i] -> d_name);
                 status = diffTwoFile("ans.out", test.c_str());
                 if (status == AC) {
-                    cout << "AC" << endl;
+                    // cout << "AC" ;
+                    db.setResult(sid, AC);
+                    client.addScore();
                 } else if (status == WA) {
-                    cout << "WA" << endl;
+                    db.setResult(sid, WA);
+                    // cout << "WA" ;
                 } else if (status == PE) {
-                    cout << "PE" << endl;
+                    db.setResult(sid, PE);
+                    // cout << "PE";
                 }
             }
         }
     }
-    wait(NULL);
-    exit(0);
-
-    //Delete dir
-    if (system(((string)"rm -r " + PATH).c_str())) {
-        throwError(REMOVE_ERROR);
-    }
+    cout << "solution " << sid << "  problem " << client.getProblemId() << ' ' << client.getMaxTime() << "ms " << client.getMaxMemory() << "MB" << " score: " << client.getScore(count1) << endl;
+    // Delete path
 
     return 0;
 }

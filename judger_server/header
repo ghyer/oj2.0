@@ -1,29 +1,30 @@
-//Header file. Write all the include file and using.
-#include <iostream>
+#include <map>
+#include <pwd.h>
+#include <string>
 #include <fstream>
 #include <cstdlib>
-#include <typeinfo>
-#include <string>
-#include <map>
-#include <unistd.h>
-#include <mysql++.h>
 #include <cstring>
+#include <dirent.h>
+#include <typeinfo>
+#include <unistd.h>
+#include <iostream>
+#include <mysql++.h>
+
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
-#include <dirent.h>
 
+using std::map;
 using std::cout;
 using std::endl;
-using std::ifstream;
 using std::string;
-using std::map;
-using mysqlpp::Connection;
-using mysqlpp::Query;
-using mysqlpp::StoreQueryResult;
+using std::ifstream;
 using mysqlpp::Row;
+using mysqlpp::Query;
+using mysqlpp::Connection;
+using mysqlpp::StoreQueryResult;
 
+#include "../common/error"
 #include "../common/function"
 #include "../common/config"
 #include "mysqlc"

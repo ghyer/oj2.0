@@ -5,8 +5,16 @@ private:
     int problem_id;
     int memory_limit;
     int time_limit;
+    int score;
+    int max_time;
+    int max_memory;
     string code;
 public:
+    Client () {
+        score = 0;
+        max_time = 0;
+        max_memory = 0;
+    }
     void load (int sid, Config &conf, Mysqlc &db) {
         solution_id         = sid;
         problem_id          = db.getProblemId(sid);
@@ -32,5 +40,28 @@ public:
     }
     int getTime () {
         return time_limit;
+    }
+    void addScore () {
+        score ++;
+    }
+    void updateTime (int t) {
+        if (t > max_time) {
+            max_time = t;
+        }
+    }
+    void updateMemory (int m) {
+        if (m > max_memory) {
+            max_memory = m;
+        }
+    }
+    int getMaxTime () {
+        return max_time;
+    }
+    int getMaxMemory () {
+        return max_memory;
+    }
+    int getScore (int cnt) {
+        double s = 100.0 / (double)cnt * score + 0.5;
+        return s;
     }
 };

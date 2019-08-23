@@ -4,18 +4,20 @@ StoreQueryResult    submit;
 Judger              judger;
 
 inline void init() {
-    //Create a background process
-    // int pid = fork();
-    // if (pid > 0) {
-    //     exit(EXIT_SUCCESS);
-    // } else if (pid < 0) {
-    //     perror("Fail to running judge_server!");
-    //     exit(EXIT_FAILURE);
-    // } else {
-    //     setsid();
-    //     umask(0);
-    // }
-
+    // Create a daemon process
+    int pid = fork();
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    } else if (pid < 0) {
+        throwError(DAEMON_ERROR);
+    } else {
+        if (setsid() == -1) {
+            throwError(SETSID_ERROR);
+        }
+        umask(0);
+    }
+    
+    // Begin
     config.load("/home/judger/config");
     db.load(config);
     judger.load(config);

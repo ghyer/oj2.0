@@ -32,10 +32,8 @@ public:
         }
     }
     void load (Config &conf) {
-        if (conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
-            cout << "Client: Success to connect to database!" << endl;
-        } else {
-            cout << "Client: Connect to database fail!" << endl;
+        if (!conn.connect(conf.get("DB_NAME"), conf.get("DB_URL"), conf.get("DB_USER"), conf.get("DB_PASS"), strToInt(conf.get("DB_PORT")))){
+            throwError(CONNECT_ERROR);
         }
     }
     int getProblemId (int solution_id) {
@@ -58,5 +56,10 @@ public:
         StoreQueryResult res = query.store(intToStr(solution_id));
         Row line = res[0];
         return (string)line["source"];
+    }
+    void setResult (int solution_id, int result) {
+        Query query = conn.query("UPDATE solution SET result=%0q");
+        query.parse();
+        query.execute(intToStr(solution_id));
     }
 };
