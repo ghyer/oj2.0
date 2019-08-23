@@ -58,8 +58,8 @@ public:
         return (string)line["source"];
     }
     void setResult (int solution_id, int result) {
-        Query query = conn.query("UPDATE solution SET result=%0q");
+        Query query = conn.query("UPDATE solution SET result=%0q WHERE solution_id=%1q");
         query.parse();
-        query.execute(intToStr(solution_id));
+        query.execute(intToStr(result), intToStr(solution_id));
     }
 };
