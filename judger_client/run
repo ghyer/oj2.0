@@ -8,9 +8,10 @@ void run (Mysqlc &db, Config &config, Client &client, dirent **&in_list, dirent 
         if (pid < 0) {
             throwError(FORK_ERROR);
         } else if (pid == 0) {
-            //Set limit
+            // Set limit
             setLimit(client.getTime(), client.getMemory(), ju);
 
+            // Redirect stdin and stdout
             FILE *input = NULL;
             FILE *output = NULL;
             input = freopen(("/data/" + (string)(in_list[i] -> d_name)).c_str(), "r", stdin);
@@ -19,11 +20,10 @@ void run (Mysqlc &db, Config &config, Client &client, dirent **&in_list, dirent 
                 throwError(FREOPEN_ERROR);
             }
 
-            // errno = 0;
+            // Execute main program, check errno for more details
             execl("/main", "main", NULL);
             close(fileno(input));
             close(fileno(output));
-            // cout << errno << endl;
             throwError(EXEC_ERROR);
         } else {
             int stat;
@@ -41,51 +41,37 @@ void run (Mysqlc &db, Config &config, Client &client, dirent **&in_list, dirent 
                 }
                 // Child process exit normally.
                 if (WIFEXITED(stat)) {
-                    time_used = usage.ru_utime.tv_sec  * 1000 
-                              + usage.ru_utime.tv_usec / 1000
-                              + usage.ru_stime.tv_sec  * 1000
-                              + usage.ru_stime.tv_usec / 1000;
-                    memory_used = usage.ru_maxrss / 1024;
-                    client.updateTime(time_used);
-                    client.updateMemory(memory_used);
-
+                    costCalc(time_used, memory_used, usage);
+                    client.update(time_used, memory_used);
                     // cout << time_used << "ms" << endl;
                     // cout << memory_used << "MB" << endl;
-
                     if (memory_used > client.getMemory()) {
-                        // cout << "MLE" ;
+                        // Memory limit excessive
                         db.setResult(sid, MLE);
-                        break;
+                        exit(0);
                     }
                     diff = true;
                     break;
                 }
                 if (WIFSIGNALED(stat)) {
                     ptrace(PTRACE_KILL, pid, NULL, NULL);
-                    time_used = usage.ru_utime.tv_sec  * 1000 
-                              + usage.ru_utime.tv_usec / 1000
-                              + usage.ru_stime.tv_sec  * 1000
-                              + usage.ru_stime.tv_usec / 1000;
-                    memory_used = usage.ru_maxrss / 1024;
-                    client.updateTime(time_used);
-                    client.updateMemory(memory_used);
-
+                    costCalc(time_used, memory_used, usage);
+                    client.update(time_used, memory_used);
                     // cout << time_used << "ms" << endl;
                     // cout << memory_used << "MB" << endl;
-
                     status = WTERMSIG(stat);
                     if (status == SIGALRM || status == SIGXCPU) {
-                        // cout << "TLE" ;
+                        // Time limit excessive
                         db.setResult(sid, TLE);
-                        break;
+                        exit(0);
                     } else if (status == SIGSEGV) {
-                        // cout << "MLE1" ;
+                        // Memory limit excessive
                         db.setResult(sid, MLE);
-                        break;
+                        exit(0);
                     } else {
-                        // cout << "RE" ;
+                        // Runtime error
                         db.setResult(sid, RE);
-                        break;
+                        exit(0);
                     }
                 }
                 //continue pid process
@@ -95,17 +81,15 @@ void run (Mysqlc &db, Config &config, Client &client, dirent **&in_list, dirent 
                 test = (string)"/data/" + (string)(out_list[i] -> d_name);
                 status = diffTwoFile("ans.out", test.c_str());
                 if (status == AC) {
-                    // cout << "AC" ;
-                    db.setResult(sid, AC);
+                    // Accepted
                     client.addScore();
-                } else if (status == WA) {
-                    db.setResult(sid, WA);
-                    // cout << "WA" ;
                 } else if (status == PE) {
                     db.setResult(sid, PE);
-                    // cout << "PE";
+                    exit(0);
+                    // Presentation error
                 }
             }
         }
     }
+    db.collect(client.getScore(), cnt, sid);
 }

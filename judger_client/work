@@ -292,3 +292,11 @@ void setLimit (int time, int memory, passwd *&ju) {
     setgid(ju->pw_gid);
     setuid(ju->pw_uid);
 }
+
+void costCalc (int &time_used, int &memory_used, rusage &usage) {
+    time_used   = usage.ru_utime.tv_sec  * 1000 
+                + usage.ru_utime.tv_usec / 1000
+                + usage.ru_stime.tv_sec  * 1000
+                + usage.ru_stime.tv_usec / 1000;
+    memory_used = usage.ru_maxrss / 1024;
+}

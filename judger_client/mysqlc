@@ -3,32 +3,29 @@ class Mysqlc {
 private:
     Connection conn;
 public:
-    void updateCompile (int sid, FILE *fp, const char *first) {
+    void updateCompile (int solution_id, FILE *fp, const char *first) {
+        char buf[1000];
+        Query query(NULL);
+        StoreQueryResult result;
         string compile_info = (string)first;
         if (fp == NULL) {
             throwError(COMPILE_TLE);
         }
-        char buf[1000];
         while (fgets(buf, sizeof(buf), fp) != NULL) {
             compile_info += (string) buf;
         }
-        Query query(NULL);
-        StoreQueryResult result;
         query = conn.query("SELECT solution_id FROM compileinfo WHERE solution_id=%0q");
         query.parse();
-        result = query.store(intToStr(sid));
+        result = query.store(intToStr(solution_id));
         query.reset();
         if (result.num_rows() == 0) {
             query = conn.query("INSERT INTO compileinfo (solution_id,error) VALUES (%0q,%1q)");
             query.parse();
-            query.execute(intToStr(sid), compile_info);
+            query.execute(intToStr(solution_id), compile_info);
         } else {
-            // cout << compile_info << endl;
-            // exit(0);
             query = conn.query("UPDATE compileinfo SET error = %0q WHERE solution_id = %1q");
             query.parse();
-            query.execute(compile_info, intToStr(sid));
-            // cout << result.num_rows() << endl;
+            query.execute(compile_info, intToStr(solution_id));
         }
     }
     void load (Config &conf) {
@@ -61,5 +58,12 @@ public:
         Query query = conn.query("UPDATE solution SET result=%0q WHERE solution_id=%1q");
         query.parse();
         query.execute(intToStr(result), intToStr(solution_id));
+    }
+    void collect (int right_cnt, int all_cnt, int solution_id) {
+        if (right_cnt == all_cnt) {
+            setResult(solution_id, AC);
+        } else {
+            setResult(solution_id, WA);
+        }
     }
 };

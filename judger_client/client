@@ -44,12 +44,13 @@ public:
     void addScore () {
         score ++;
     }
-    void updateTime (int t) {
+    int getScore () {
+        return score;
+    }
+    void update (int t, int m) {
         if (t > max_time) {
             max_time = t;
         }
-    }
-    void updateMemory (int m) {
         if (m > max_memory) {
             max_memory = m;
         }
