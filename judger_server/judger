@@ -82,7 +82,7 @@ public:
     }
 protected:
     void judgeClient (int id, int num) {
-        execl("/judger/judger_client/judger_client", "judger_client", intToStr(solution_id[id]).c_str(), intToStr(num).c_str(), NULL);
+        execl("/root/judger/judger_client/judger_client", "judger_client", intToStr(solution_id[id]).c_str(), intToStr(num).c_str(), NULL);
         throwError(EXEC_ERROR);
     }
 };

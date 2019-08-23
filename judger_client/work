@@ -1,0 +1,294 @@
+int dirSelectIn (const dirent *dirname) {
+    const char *buf = dirname -> d_name;
+    int l = strlen(buf);
+    if (buf[l-2] == 'i' && buf[l-1] == 'n') {
+        return true;
+    }
+    if (buf[l-2] == 'I' && buf[l-1] == 'N') {
+        return true;
+    }
+    return false;
+}
+
+int dirSelectOut (const dirent *dirname) {
+    const char *buf = dirname -> d_name;
+    int l = strlen(buf);
+    if (buf[l-3] == 'a' && buf[l-2] == 'n' && buf[l-1] == 's') {
+        return true;
+    }
+    if (buf[l-3] == 'o' && buf[l-2] == 'u' && buf[l-1] == 't') {
+        return true;
+    }
+    if (buf[l-3] == 'A' && buf[l-2] == 'N' && buf[l-1] == 'S') {
+        return true;
+    }
+    if (buf[l-3] == 'O' && buf[l-2] == 'U' && buf[l-1] == 'T') {
+        return true;
+    }
+    return false;
+}
+
+void chownDir(const char* dir, int uid, int gid) {
+    // cout << dir << endl;
+    chmod(dir, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+    chown(dir, uid, gid);
+    dirent *list;
+    string dirname;
+    DIR *nowdir = opendir(dir);
+    if (nowdir == NULL) {
+        return;
+    }
+    while ((list = readdir(nowdir)) != NULL) {
+        if (strcmp(list->d_name, ".") == 0 || strcmp(list->d_name, "..") == 0) {
+            continue;
+        }
+        dirname = (string)dir + "/" + (string)(list->d_name);
+        chownDir(dirname.c_str(), uid, gid);
+    }
+    closedir(nowdir);
+    return;
+}
+
+void chrootPre () {
+    mkdir("lib64", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("lib", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("lib/x86_64-linux-gnu", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("bin", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("usr", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("usr/lib", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir("usr/lib/x86_64-linux-gnu", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    system("cp /lib/x86_64-linux-gnu/libdl.so.2 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libc.so.6 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libtinfo.so.5 ./lib/x86_64-linux-gnu");
+    system("cp /lib/x86_64-linux-gnu/libm.so.6 ./lib/x86_64-linux-gnu");
+    system("cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./usr/lib/x86_64-linux-gnu");
+    system("cp /lib64/ld-linux-x86-64.so.2 ./lib64");
+    system("cp /bin/bash bin");
+}
+
+bool delBlank (const char ch) {
+    if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\377')
+        return true;
+    return false;
+}
+
+int diffTwoFile (const char *file1, const char *file2) {
+    // cout << file1 << ' ' << file2 << endl;
+    int l1;
+    int l2;
+    char ch;
+    ifstream fp;
+    string ans = "";
+    string test = "";
+
+    fp.open(file1, ios::in);
+    while (fp.get(ch)) {
+        ans += ch;
+    }
+    fp.close();
+    l1 = ans.length();
+    for (int i = l1-1; i >= 0; i --) {
+        if (delBlank(ans[i])) {
+            ans.erase(i, 1);
+            continue;
+        }
+        break;
+    }
+    
+    fp.open(file2, ios::in);
+    while (!fp.eof()) {
+        test += fp.get();
+    }
+    fp.close();
+    l2 = test.length();
+    for (int i = l2-1; i >= 0; i --) {
+        if (delBlank(test[i])) {
+            test.erase(i, 1);
+            continue;
+        }
+        break;
+    }
+    if (ans == test) {
+        return AC;
+    }
+    l1 = ans.length();
+    l2 = test.length();
+    // cout << ans << endl;
+    // cout << test << endl;
+    for (int i = 0; i < l1; i ++) {
+        if (delBlank(ans[i])) {
+            ans.erase(i, 1);
+            i --;
+        }
+    }
+    for (int i = 0; i < l2; i ++) {
+        if (delBlank(test[i])) {
+            test.erase(i, 1);
+            i --;
+        }
+    }
+    if (test == ans) {
+        return PE;
+    }
+    return WA;
+}
+
+inline void init (int sid, Mysqlc &db, Config &config, Client &client) {
+    config.load("/home/judger/config");
+    db.load(config);
+    client.load(sid, config, db);
+}
+
+void makeDir (const char *PATH, const char *JUDGE_HOME, const char *PATH_DATA, const char *rmcmd) {
+    //Check client dir common or not
+    if (!access(PATH, F_OK)) {
+        if (system(rmcmd)) {
+            throwError(REMOVE_ERROR);
+        }
+    }
+    if (chdir(JUDGE_HOME)) {
+        throwError(CHDIR_ERROR);
+    }
+    if (mkdir(PATH, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+        throwError(MKDIR_ERROR);
+    }
+    if (mkdir(PATH_DATA, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+        throwError(MKDIR_ERROR);
+    }
+}
+
+void writeCpp (const char *CODE_FILE, Client &client) {
+    //Write main.cpp with user's code
+    ofstream code;
+    code.open(CODE_FILE, ios::out);
+    code << client.getCode();
+    code.close();
+}
+
+void compileCpp (const char *PATH, const char *COMPILE_CMD, Config &config, Mysqlc &db, int sid) {
+    //Compile the cpp file.
+    int pid;
+    int stat;
+    timeval end;
+    timeval start;
+    char buf[1000];
+    bool kill_flag;
+    int compile_time = strToInt(config.get("COMPILE_TIME"));
+
+    gettimeofday(&start, NULL);
+    pid = fork();
+    if (pid < 0) {
+        throwError(FORK_ERROR);
+    } else if (pid == 0) {
+        if (chdir(PATH)) {
+            throwError(CHDIR_ERROR);
+        }
+        FILE *fp = NULL;
+        fp = popen(COMPILE_CMD, "r");
+        if (fp == NULL) {
+            throwError(POPEN_ERROR);
+        } else {
+            if (fgets( buf, sizeof(buf), fp) != NULL) {
+                db.setResult(sid, CE);
+                db.updateCompile(sid, fp, buf);
+                throwError(COMPILE_ERROR);
+            }
+            pclose(fp);
+            exit(0);
+        }
+    } else {
+        kill_flag = true;
+        do {
+            gettimeofday(&end, NULL);
+            if (waitpid(pid, &stat, WNOHANG) == pid) {
+                if (stat) {
+                    exit(0);
+                }
+                kill_flag = false;
+                break;
+            }
+        } while (end.tv_sec - start.tv_sec <= compile_time);
+        if (kill_flag) {
+            kill(pid, SIGKILL);
+            db.setResult(sid, CO);
+            db.updateCompile(sid, NULL ,"Compile timeout!");
+        }
+    }
+}
+
+void copyData (const char *CP_CMD) {
+    //Copy data to client
+    int status;
+    status = system(CP_CMD);
+    if (-1 == status) {
+        throwError(COPY_FAIL);
+    } else {
+        if (WIFEXITED(status)) {
+            if (WEXITSTATUS(status)) {
+                throwError(COPY_FAIL);
+            }
+        } else {
+            throwError(COPY_FAIL);
+        }
+    }
+}
+
+void getData (const char *PATH_DATA, dirent **&in_list, dirent **&out_list, int &cnt) {
+    //Get datain and dataout.
+    int count1, count2;
+    count1 = scandir(PATH_DATA, &in_list, dirSelectIn, alphasort);
+    if (count1 == 0) {
+        throwError(DATA_ERROR);
+    }
+    count2 = scandir(PATH_DATA, &out_list, dirSelectOut, alphasort);
+    if (count2 == 0) {
+        throwError(DATA_ERROR);
+    }
+    if (count1 != count2) {
+        throwError(DATA_ERROR);
+    }
+    cnt = count1;
+}
+
+void changeEnvironment (const char *PATH, passwd *ju) {
+    //Change running environment.
+    ju = getpwnam("judger");
+    chdir(PATH);
+    chrootPre();
+    chownDir(PATH, ju->pw_uid, ju->pw_gid);
+    chroot(PATH);
+}
+
+void setLimit (int time, int memory, passwd *&ju) {
+    rlimit mlimit;
+    mlimit = (rlimit) {memory * 1024 * 1024 * 2, memory * 1024 * 1024 * 2};
+    if (setrlimit(RLIMIT_AS, &mlimit)) {
+        throwError(LIMIT_ERROR);
+    }
+    mlimit = (rlimit) {memory * 1024 * 1024 * 2, memory * 1024 * 1024 * 2};
+    if (setrlimit(RLIMIT_DATA, &mlimit)) {
+        throwError(LIMIT_ERROR);
+    }
+
+    rlimit tlimit;
+    tlimit = (rlimit) {time, time + 1};
+    if (setrlimit(RLIMIT_CPU, &tlimit)) {
+        throwError(LIMIT_ERROR);
+    }
+
+    rlimit climit;
+    climit = (rlimit) {0, 0};
+    if (setrlimit(RLIMIT_CORE, &climit)) {
+        throwError(LIMIT_ERROR);
+    }
+    
+    rlimit slimit;
+    slimit = (rlimit) { 20 * 1024 * 1024, 20 * 1024 * 1024};
+    if (setrlimit(RLIMIT_STACK, &slimit)) {
+        throwError(LIMIT_ERROR);
+    }
+    //Set gid must before uid
+    setgid(ju->pw_gid);
+    setuid(ju->pw_uid);
+}

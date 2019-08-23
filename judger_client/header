@@ -40,6 +40,6 @@ using mysqlpp::SimpleResult;
 
 #include "../common/error"
 #include "../common/function"
-#include "../common/config"
+#include "config"
 #include "mysqlc"
 #include "client"
