@@ -30,4 +30,4 @@ cd ../judger_client
 g++ judger_client.cpp -w -o judger_client -I/usr/local/include/mysql++ -lmysqlpp -I/usr/include/mysql -lmysqlclient
 cp judger_client /usr/local/bin
 
-/usr/local/bin/judger_server 1>/var/log/judger.log
+/usr/local/bin/judger_server
