@@ -43,8 +43,8 @@ void run (Mysqlc &db, Config &config, Client &client, dirent **&in_list, dirent 
                 if (WIFEXITED(stat)) {
                     costCalc(time_used, memory_used, usage);
                     client.update(time_used, memory_used);
-                    // cout << time_used << "ms" << endl;
-                    // cout << memory_used << "MB" << endl;
+                        // cout << time_used << "ms" << endl;
+                        // cout << memory_used << "MB" << endl;
                     if (memory_used > client.getMemory()) {
                         // Memory limit excessive
                         db.setResult(sid, MLE);
@@ -57,8 +57,8 @@ void run (Mysqlc &db, Config &config, Client &client, dirent **&in_list, dirent 
                     ptrace(PTRACE_KILL, pid, NULL, NULL);
                     costCalc(time_used, memory_used, usage);
                     client.update(time_used, memory_used);
-                    // cout << time_used << "ms" << endl;
-                    // cout << memory_used << "MB" << endl;
+                        // cout << time_used << "ms" << endl;
+                        // cout << memory_used << "MB" << endl;
                     status = WTERMSIG(stat);
                     if (status == SIGALRM || status == SIGXCPU) {
                         // Time limit excessive

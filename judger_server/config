@@ -1,7 +1,3 @@
-/****************
- * config.read("/path/to/config")
- * config.get("config_name")
- ****************/
 //Config class
 class Config {
 private:

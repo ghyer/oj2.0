@@ -5,17 +5,17 @@ StoreQueryResult    submit;
 
 inline void init() {
     // Create a daemon process
-    // int pid = fork();
-    // if (pid > 0) {
-    //     exit(EXIT_SUCCESS);
-    // } else if (pid < 0) {
-    //     throwError(DAEMON_ERROR);
-    // } else {
-    //     if (setsid() == -1) {
-    //         throwError(SETSID_ERROR);
-    //     }
-    //     umask(0);
-    // }
+    int pid = fork();
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    } else if (pid < 0) {
+        throwError(DAEMON_ERROR);
+    } else {
+        if (setsid() == -1) {
+            throwError(SETSID_ERROR);
+        }
+        umask(0);
+    }
     
     // Begin
     config.load("/home/judger/config");

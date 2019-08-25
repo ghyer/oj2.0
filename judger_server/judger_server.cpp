@@ -5,8 +5,7 @@ int main(int argc, char **argv) {
         submit = db.listen();
         judger.add(submit);
         judger.judgeCode(db);
-        cout << "over" << endl;
-        sleep(200);
+        sleep(2);
     }
     return 0;
 }

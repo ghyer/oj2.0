@@ -116,20 +116,22 @@ int diffTwoFile (const char *file1, const char *file2) {
     l2 = test.length();
     // cout << ans << endl;
     // cout << test << endl;
-    for (int i = 0; i < l1; i ++) {
-        if (delBlank(ans[i])) {
-            ans.erase(i, 1);
-            i --;
+    if (l2 < 50000) {
+        for (int i = 0; i < l1; i ++) {
+            if (delBlank(ans[i])) {
+                ans.erase(i, 1);
+                i --;
+            }
         }
-    }
-    for (int i = 0; i < l2; i ++) {
-        if (delBlank(test[i])) {
-            test.erase(i, 1);
-            i --;
+        for (int i = 0; i < l2; i ++) {
+            if (delBlank(test[i])) {
+                test.erase(i, 1);
+                i --;
+            }
         }
-    }
-    if (test == ans) {
-        return PE;
+        if (test == ans) {
+            return PE;
+        }
     }
     return WA;
 }
@@ -251,7 +253,7 @@ void getData (const char *PATH_DATA, dirent **&in_list, dirent **&out_list, int 
     cnt = count1;
 }
 
-void changeEnvironment (const char *PATH, passwd *ju) {
+void changeEnvironment (const char *PATH, passwd *&ju) {
     //Change running environment.
     ju = getpwnam("judger");
     chdir(PATH);
@@ -266,6 +268,7 @@ void setLimit (int time, int memory, passwd *&ju) {
     if (setrlimit(RLIMIT_AS, &mlimit)) {
         throwError(LIMIT_ERROR);
     }
+
     mlimit = (rlimit) {memory * 1024 * 1024 * 2, memory * 1024 * 1024 * 2};
     if (setrlimit(RLIMIT_DATA, &mlimit)) {
         throwError(LIMIT_ERROR);
@@ -288,6 +291,7 @@ void setLimit (int time, int memory, passwd *&ju) {
     if (setrlimit(RLIMIT_STACK, &slimit)) {
         throwError(LIMIT_ERROR);
     }
+
     //Set gid must before uid
     setgid(ju->pw_gid);
     setuid(ju->pw_uid);
