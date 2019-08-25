@@ -194,7 +194,8 @@ void compileCpp (const char *PATH, const char *COMPILE_CMD, Config &config, Mysq
             if (fgets( buf, sizeof(buf), fp) != NULL) {
                 db.setResult(sid, CE);
                 db.updateCompile(sid, fp, buf);
-                throwError(COMPILE_ERROR);
+                cout << "solution " << sid << "  " << "Compile error! score: 0 " << endl;
+                exit(0);
             }
             pclose(fp);
             exit(0);
@@ -215,6 +216,8 @@ void compileCpp (const char *PATH, const char *COMPILE_CMD, Config &config, Mysq
             kill(pid, SIGKILL);
             db.setResult(sid, CO);
             db.updateCompile(sid, NULL ,"Compile timeout!");
+            cout << "solution " << sid << "  " << "Compile timeout! score: 0 " << endl;
+            exit(0);
         }
     }
 }
